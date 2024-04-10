@@ -1,8 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class MainManager : MonoBehaviour
 {
@@ -10,22 +9,21 @@ public class MainManager : MonoBehaviour
     public int LineCount = 6;
     public Rigidbody Ball;
 
-    public Text ScoreText;
+    public Text playerNameText;
+    public Text scoreText;
     public GameObject GameOverText;
-    
-    private bool m_Started = false;
+
     private int m_Points;
-    
+    private bool m_Started = false;
     private bool m_GameOver = false;
 
-    
-    // Start is called before the first frame update
     void Start()
     {
+        LoadPlayerData(); // Cargar datos del jugador
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
+
+        int[] pointCountArray = new [] {1, 1, 2, 2, 5, 5};
         for (int i = 0; i < LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
@@ -36,6 +34,16 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+    }
+
+    private void LoadPlayerData()
+    {
+        string playerName = PlayerPrefs.GetString("PlayerName", "");
+        int highestScore = PlayerPrefs.GetInt("HighestScore", 0);
+
+        // Mostrar el nombre del jugador y el puntaje en el UI
+        playerNameText.text = $"Player: {playerName}";
+        scoreText.text = $"High Score: {highestScore}";
     }
 
     private void Update()
@@ -65,7 +73,15 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        scoreText.text = $"Score: {m_Points}";
+
+        // Guardar el nuevo puntaje si es mayor que el puntaje anterior
+        if (m_Points > PlayerPrefs.GetInt("HighestScore", 0))
+        {
+            PlayerPrefs.SetInt("HighestScore", m_Points);
+            PlayerPrefs.Save();
+            scoreText.text = $"Highest Score: {m_Points}";
+        }
     }
 
     public void GameOver()
